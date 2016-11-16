@@ -90,7 +90,7 @@ describe.only('connectInfiniteHits', () => {
   });
 
   it('adds 1 to page when calling refine', () => {
-    const props = {id: 'pager'};
+    const props = {};
 
     const state0 = {};
 

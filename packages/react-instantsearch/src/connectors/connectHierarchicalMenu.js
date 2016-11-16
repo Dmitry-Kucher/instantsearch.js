@@ -3,8 +3,10 @@ import {PropTypes} from 'react';
 import createConnector from '../core/createConnector';
 import {SearchParameters} from 'algoliasearch-helper';
 
+export const getId = props => props.attributes[0];
+
 function getCurrentRefinement(props, state) {
-  const id = props.id;
+  const id = getId(props);
   if (typeof state[id] !== 'undefined') {
     if (state[id] === '') {
       return null;
@@ -72,7 +74,6 @@ const sortBy = ['name:asc'];
  * @name connectHierarchicalMenu
  * @kind connector
  * @category connector
- * @propType {string} id - URL state serialization key. The state of this widget takes the shape of a `string`, which corresponds to the full path of the current selected refinement.
  * @propType {string} attributes - List of attributes to use to generate the hierarchy of the menu. See the example for the convention to follow.
  * @propType {string} defaultRefinement - the item value selected by default
  * @propType {boolean} [showMore=false] - Flag to activate the show more button, for toggling the number of items between limitMin and limitMax.
@@ -90,7 +91,6 @@ export default createConnector({
   displayName: 'AlgoliaHierarchicalMenu',
 
   propTypes: {
-    id: PropTypes.string.isRequired,
     attributes: PropTypes.arrayOf(PropTypes.string).isRequired,
     separator: PropTypes.string,
     rootPath: PropTypes.string,
@@ -133,7 +133,12 @@ export default createConnector({
   },
 
   getProps(props, state, search) {
-    const {id, showMore, limitMin, limitMax} = props;
+    const {attributes, showMore, limitMin, limitMax} = props;
+
+    if (typeof attributes === 'undefined' || !attributes.length)
+      throw new Error('attributes props should at least have one element');
+
+    const id = getId(props);
     const {results} = search;
 
     const isFacetPresent =
@@ -153,15 +158,18 @@ export default createConnector({
   },
 
   refine(props, state, nextRefinement) {
+    if (typeof props.attributes === 'undefined' || !props.attributes.length)
+      throw new Error('attributes props should at least have one element');
+
+    const id = getId(props);
     return {
       ...state,
-      [props.id]: nextRefinement || '',
+      [id]: nextRefinement || '',
     };
   },
 
   getSearchParameters(searchParameters, props, state) {
     const {
-      id,
       attributes,
       separator,
       rootPath,
@@ -170,6 +178,11 @@ export default createConnector({
       limitMin,
       limitMax,
     } = props;
+
+    if (typeof attributes === 'undefined' || !attributes.length)
+      throw new Error('attributes props should at least have one element');
+
+    const id = getId(props);
     const limit = showMore ? limitMax : limitMin;
 
     searchParameters = searchParameters
@@ -199,13 +212,18 @@ export default createConnector({
   },
 
   getMetadata(props, state) {
-    const {id} = props;
+    if (typeof props.attributes === 'undefined' || !props.attributes.length)
+      throw new Error('attributes props should at least have one element');
+
+    const rootAttribute = props.attributes[0];
+    const id = getId(props);
     const currentRefinement = getCurrentRefinement(props, state);
+
     return {
       id,
       items: !currentRefinement ? [] : [{
-        label: `${id}: ${currentRefinement}`,
-        attributeName: id,
+        label: `${rootAttribute}: ${currentRefinement}`,
+        attributeName: rootAttribute,
         value: nextState => ({
           ...nextState,
           [id]: '',
