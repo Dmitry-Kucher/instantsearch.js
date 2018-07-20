@@ -88,9 +88,6 @@ const renderer = ({
 
     // search on enter
     if (searchOnEnterKeyPressOnly) {
-      addListener(input, INPUT_EVENT, e => {
-        refine(getValue(e), false);
-      });
       addListener(input, 'keyup', e => {
         if (e.keyCode === KEY_ENTER) refine(getValue(e));
       });
